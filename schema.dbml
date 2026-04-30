@@ -1,0 +1,792 @@
+// PIM schema (DBML)
+// Generated from live database (schema=pim)
+// Compatible with dbdiagram.io
+
+Table pim.alumio_sync_log {
+  id bigint [pk, increment]
+  request_data jsonb
+  response_data jsonb
+  http_status_code int [not null]
+  response_message text
+  skus text[]
+  operation_type jsonb
+  error_source text
+  task_id text
+  duration real
+  retry_number int
+  created_at timestamp [not null, default: `now()`]
+  Indexes {
+    (created_at) [name: 'idx_alumio_sync_log_created_at']
+  }
+}
+
+Table pim.alumio_sync_queue {
+  id bigint [pk, increment]
+  product_id bigint [not null]
+  operation_type text [not null]
+  status text [not null, default: 'pending']
+  created_at timestamp [not null, default: `now()`]
+  processed_at timestamp
+  Indexes {
+    (created_at) [name: 'alumio_sync_queue_v2_created_at_idx']
+    (product_id) [name: 'alumio_sync_queue_v2_product_idx']
+    (status) [name: 'alumio_sync_queue_v2_status_idx']
+  }
+}
+
+Table pim.api_key {
+  api_key_id bigint [pk, increment]
+  name text [not null]
+  key_hash text [not null]
+  key_prefix text [not null]
+  scopes text[] [not null]
+  active boolean [not null, default: `true`]
+  last_used_at timestamp
+  created_at timestamp [not null, default: `now()`]
+  created_by bigint
+  Indexes {
+    (key_hash) [name: 'api_key_key_hash_key', unique]
+    (created_by) [name: 'idx_api_key_created_by']
+  }
+}
+
+Table pim.app_permission {
+  app_permission_id bigint [pk, increment]
+  code text [not null]
+  name text [not null]
+  description text
+  Indexes {
+    (code) [name: 'app_permission_code_key', unique]
+  }
+}
+
+Table pim.app_role {
+  app_role_id bigint [pk, increment]
+  code text [not null]
+  name text [not null]
+  description text
+  is_system boolean [default: `false`]
+  created_at timestamp
+  updated_at timestamp
+  Indexes {
+    (code) [name: 'app_role_code_key', unique]
+  }
+}
+
+Table pim.app_role_permission {
+  app_role_id bigint [not null]
+  app_permission_id bigint [not null]
+  Indexes {
+    (app_role_id, app_permission_id) [pk]
+  }
+}
+
+Table pim.app_session {
+  app_session_id bigint [pk, increment]
+  app_user_id bigint [not null]
+  session_token_hash text [not null]
+  created_at timestamp [not null]
+  expires_at timestamp [not null]
+  revoked_at timestamp
+  user_agent text
+  ip_address text
+  Indexes {
+    (session_token_hash) [name: 'app_session_session_token_hash_key', unique]
+    (app_user_id) [name: 'idx_app_session_app_user_id']
+  }
+}
+
+Table pim.app_user {
+  app_user_id bigint [pk, increment]
+  email text
+  google_sub text
+  display_name text
+  given_name text
+  family_name text
+  avatar_url text
+  status text [not null]
+  last_login_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  Indexes {
+    (email) [name: 'app_user_email_key', unique]
+    (google_sub) [name: 'app_user_google_sub_key', unique]
+    (email) [name: 'idx_app_user_email']
+    (google_sub) [name: 'idx_app_user_google_sub']
+  }
+}
+
+Table pim.app_user_role {
+  app_user_id bigint [not null]
+  app_role_id bigint [not null]
+  assigned_at timestamp
+  assigned_by bigint
+  assigned_reason text
+  Indexes {
+    (app_user_id, app_role_id) [pk]
+  }
+}
+
+Table pim.attribute_def {
+  attribute_id bigint [pk, increment]
+  code text [not null]
+  label text
+  data_type text
+  magento_sync boolean [default: `false`]
+  magento_scope text [not null, default: 'global']
+  Indexes {
+    (code) [name: 'attribute_def_code_key', unique]
+  }
+}
+
+Table pim.audit_event {
+  audit_event_id bigint [pk, increment]
+  actor_user_id bigint
+  action text [not null]
+  entity_type text
+  entity_id text
+  diff_json jsonb
+  created_at timestamp [not null]
+  Indexes {
+    (actor_user_id) [name: 'idx_audit_event_actor_user_id']
+    (created_at) [name: 'idx_audit_event_created_at']
+    (entity_type, entity_id) [name: 'idx_audit_event_entity']
+  }
+}
+
+Table pim.auth_identity {
+  auth_identity_id bigint [pk, increment]
+  app_user_id bigint [not null]
+  provider text [not null]
+  provider_subject text [not null]
+  provider_email text
+  provider_payload jsonb
+  created_at timestamp
+  updated_at timestamp
+  Indexes {
+    (provider, provider_subject) [name: 'auth_identity_provider_provider_subject_key', unique]
+    (app_user_id) [name: 'idx_auth_identity_app_user_id']
+  }
+}
+
+Table pim.brands {
+  brand_id int [pk]
+  brand_grouping text
+  brand_name text [not null]
+}
+
+Table pim.category {
+  category_id bigint [pk, increment]
+  parent_id bigint
+  name text [not null]
+  path_key text [not null]
+  Indexes {
+    (path_key) [name: 'category_path_key_key', unique]
+    (parent_id) [name: 'idx_category_parent_id']
+  }
+}
+
+Table pim.channel {
+  channel_id bigint [pk, increment]
+  code text [not null]
+  name text
+  Indexes {
+    (code) [name: 'channel_code_key', unique]
+  }
+}
+
+Table pim.club {
+  club_id bigint [pk, increment]
+  name text [not null]
+  country text
+  founded_year int
+  Indexes {
+    (name) [name: 'club_name_key', unique]
+  }
+}
+
+Table pim.club_rivalry {
+  club_rivalry_id bigint [pk, increment]
+  club_id_a bigint [not null]
+  club_id_b bigint [not null]
+  rivalry_type_id bigint
+  known_as text
+  intensity smallint
+  period_start date
+  period_end date
+  is_primary boolean
+  notes text
+  Indexes {
+    (club_id_a, club_id_b, rivalry_type_id, period_start, period_end) [name: 'club_rivalry_club_id_a_club_id_b_rivalry_type_id_period_sta_key', unique]
+    (club_id_a, club_id_b) [name: 'idx_club_rivalry_pair']
+    (period_start, period_end) [name: 'idx_club_rivalry_period']
+    (rivalry_type_id) [name: 'idx_club_rivalry_type']
+  }
+}
+
+Table pim.club_rivals_expanded {
+  club_rivalry_id bigint [not null]
+  club_id bigint [not null]
+  rival_club_id bigint [not null]
+  rivalry_type_id bigint
+  known_as text
+  intensity smallint
+  period_start date
+  period_end date
+  is_primary boolean
+  notes text
+  Indexes {
+    (club_id) [name: 'idx_club_rivals_expanded_club_id']
+    (rival_club_id) [name: 'idx_club_rivals_expanded_rival_club_id']
+  }
+}
+
+Table pim.competition {
+  competition_id bigint [pk, increment]
+  name text [not null]
+  country text
+  Indexes {
+    (name) [name: 'competition_name_key', unique]
+  }
+}
+
+Table pim.condition {
+  condition_id int [pk]
+  condition_name text [not null]
+}
+
+Table pim.currency {
+  currency_id bigint [pk, increment]
+  code text [not null]
+  name text
+  symbol text
+  minor_unit smallint
+  enabled boolean
+  Indexes {
+    (code) [name: 'currency_code_key', unique]
+    (code) [name: 'idx_currency_code']
+  }
+}
+
+Table pim.currency_conversion_rate {
+  conversion_rate_id bigint [pk, increment]
+  from_currency_id bigint [not null]
+  to_currency_id bigint [not null]
+  rate numeric(12,6) [not null]
+  updated_at timestamp
+  Indexes {
+    (from_currency_id, to_currency_id) [name: 'currency_conversion_rate_from_currency_id_to_currency_id_key', unique]
+  }
+}
+
+Table pim.department {
+  department_id bigint [pk, increment]
+  name text [not null]
+  Indexes {
+    (name) [name: 'department_name_key', unique]
+  }
+}
+
+Table pim.era {
+  era_id bigint [pk, increment]
+  name text [not null]
+  start_year int [not null]
+  end_year int [not null]
+  Indexes {
+    (name) [name: 'era_name_key', unique]
+  }
+}
+
+Table pim.gender {
+  gender_id bigint [pk, increment]
+  gender_name text [not null]
+}
+
+Table pim.image_asset {
+  image_id bigint [pk, increment]
+  product_id bigint
+  role text [not null]
+  url text [not null]
+  label text
+  sort_order int
+  Indexes {
+    (product_id) [name: 'idx_image_asset_product_id']
+    (role) [name: 'idx_image_asset_role']
+  }
+}
+
+Table pim.import_error {
+  import_error_id bigint [pk, increment]
+  import_row_id bigint [not null]
+  field_key text
+  error_code text
+  error_message text
+  meta_json jsonb
+  created_at timestamp
+  Indexes {
+    (import_row_id) [name: 'idx_import_error_row_id']
+  }
+}
+
+Table pim.import_job {
+  import_job_id bigint [pk, increment]
+  created_by bigint
+  source_type text
+  import_type text [not null]
+  status text [not null]
+  original_filename text
+  file_sha256 text
+  total_rows int
+  valid_rows int
+  invalid_rows int
+  applied_rows int
+  created_at timestamp
+  updated_at timestamp
+  applied_at timestamp
+  Indexes {
+    (created_by) [name: 'idx_import_job_created_by']
+    (status) [name: 'idx_import_job_status']
+  }
+}
+
+Table pim.import_row {
+  import_row_id bigint [pk, increment]
+  import_job_id bigint [not null]
+  row_number int [not null]
+  row_raw jsonb [not null]
+  row_normalized jsonb
+  row_status text [not null]
+  row_key text
+  created_at timestamp
+  updated_at timestamp
+  Indexes {
+    (import_job_id) [name: 'idx_import_row_job_id']
+    (import_job_id, row_status) [name: 'idx_import_row_job_status']
+    (import_job_id, row_number) [name: 'import_row_import_job_id_row_number_key', unique]
+  }
+}
+
+Table pim.kit_category {
+  kit_category_id bigint [pk, increment]
+  name text [not null]
+  Indexes {
+    (name) [name: 'kit_category_name_key', unique]
+  }
+}
+
+Table pim.kit_class {
+  kit_class_id bigint [pk, increment]
+  name text [not null]
+  Indexes {
+    (name) [name: 'kit_class_name_key', unique]
+  }
+}
+
+Table pim.payloads {
+  id bigint [pk, increment]
+  payload_type text
+  last_run_date timestamp
+  payload_location text
+}
+
+Table pim.product {
+  product_id bigint [pk, increment]
+  sku text [not null]
+  parent_sku text
+  article_number text
+  product_type text [not null, default: 'simple']
+  name text
+  product_description text
+  product_colour_id bigint
+  gender_id bigint
+  era_id bigint
+  brand_id int
+  product_type_id int
+  product_style text
+  size_id bigint
+  condition_id int
+  condition_detail text
+  barcode text
+  weight numeric(12,3)
+  width_cm int
+  length_cm int
+  depth numeric(12,3)
+  cost_price numeric(12,2)
+  average_cost_price numeric(12,2)
+  customer_price numeric(12,2)
+  tax_class_id bigint
+  composition text
+  country_of_manufacture text
+  commodity_code text
+  image_code text
+  printed boolean
+  magento_product_id int
+  enabled boolean
+  sync boolean [default: `false`]
+  created_at timestamp
+  updated_at timestamp
+  updated_by bigint
+  Indexes {
+    (brand_id) [name: 'idx_product_brand_id']
+    (enabled) [name: 'idx_product_enabled']
+    `parent_sku IS NOT NULL` [name: 'idx_product_parent_sku']
+    (product_type_id) [name: 'idx_product_product_type_id']
+    `sync = true` [name: 'idx_product_sync']
+    (product_type) [name: 'idx_product_type']
+    (barcode) [name: 'product_barcode_key', unique]
+    (sku) [name: 'product_sku_key', unique]
+  }
+}
+
+Table pim.product_attribute_val {
+  product_id bigint [not null]
+  attribute_id bigint [not null]
+  value_text text
+  value_num numeric
+  value_bool boolean
+  value_json jsonb
+  product_attribute_val_id bigint [pk, increment]
+  store_id bigint
+  Indexes {
+    (attribute_id) [name: 'idx_product_attribute_val_attribute_id']
+    (product_id) [name: 'idx_product_attribute_val_product_id']
+    `store_id IS NOT NULL` [name: 'idx_product_attribute_val_store_id']
+  }
+}
+
+Table pim.product_barcode {
+  product_barcode_id bigint [pk, increment]
+  product_id bigint
+  barcode_type text
+  barcode_value text [not null]
+  is_primary boolean
+  status text
+  source text
+  verified_at timestamp
+  created_at timestamp
+  Indexes {
+    (product_id) [name: 'idx_product_barcode_product_id']
+    (status) [name: 'idx_product_barcode_status']
+    (barcode_value) [name: 'product_barcode_barcode_value_key', unique]
+  }
+}
+
+Table pim.product_category {
+  product_id bigint [not null]
+  category_id bigint [not null]
+  Indexes {
+    (product_id, category_id) [pk]
+    (category_id) [name: 'idx_product_category_category_id']
+  }
+}
+
+Table pim.product_channel_id {
+  product_id bigint [not null]
+  channel_id bigint [not null]
+  external_product_id text
+  Indexes {
+    (product_id, channel_id) [pk]
+    (channel_id) [name: 'idx_product_channel_id_channel_id']
+    (external_product_id) [name: 'idx_product_channel_id_external_id']
+  }
+}
+
+Table pim.product_colour {
+  product_colour_id bigint [pk, increment]
+  magento_colour_id text
+  magento_colour_name text
+  brand_id int
+  brand_colour_id int
+  brand_colour_name text
+  Indexes {
+    (brand_id) [name: 'idx_product_colour_brand_id']
+  }
+}
+
+Table pim.product_group {
+  product_group_id bigint [pk, increment]
+  name text [not null]
+  description text
+  status text [not null]
+  is_system boolean [not null, default: `false`]
+  created_at timestamp
+  updated_at timestamp
+  created_by bigint
+  updated_by bigint
+  Indexes {
+    (status) [name: 'idx_product_group_status']
+  }
+}
+
+Table pim.product_group_member {
+  product_group_member_id bigint [pk, increment]
+  product_group_id bigint [not null]
+  product_id bigint [not null]
+  added_at timestamp
+  added_by bigint
+  start_date timestamp
+  end_date timestamp
+  live boolean [not null, default: `true`]
+  Indexes {
+    (live) [name: 'idx_product_group_member_live']
+    (product_group_id) [name: 'idx_product_group_member_product_group_id']
+    (product_id) [name: 'idx_product_group_member_product_id']
+  }
+}
+
+Table pim.product_price {
+  product_price_id bigint [pk, increment]
+  product_id bigint [not null]
+  currency_id bigint [not null]
+  cost_price numeric(12,2)
+  average_cost_price numeric(12,2)
+  retail_price numeric(12,2)
+  special_retail_price numeric(12,2)
+  customer_price numeric(12,2)
+  is_manual_override boolean [default: `false`]
+  valid_from timestamp
+  valid_to timestamp
+  store_id bigint
+  rrp numeric(12,2)
+  printing_cost numeric(12,2)
+  Indexes {
+    (product_id, currency_id, store_id) [name: 'product_price_product_currency_idx']
+  }
+}
+
+Table pim.product_sizes {
+  size_id bigint [pk, increment]
+  magento_size_id int
+  magento_size_short_name text
+  magento_size_long_name text
+  config_options jsonb
+  sizing_category text
+}
+
+Table pim.product_stock {
+  product_id bigint [not null]
+  warehouse_id bigint [not null]
+  qty int
+  bin_location text
+  last_counted_at timestamp
+  Indexes {
+    (product_id, warehouse_id) [pk]
+    (warehouse_id) [name: 'idx_product_stock_warehouse_id']
+  }
+}
+
+Table pim.product_store {
+  product_id bigint [not null]
+  store_id bigint [not null]
+  enabled boolean [default: `true`]
+  created_at timestamp [default: `now()`]
+  Indexes {
+    (product_id, store_id) [pk]
+    (store_id) [name: 'idx_product_store_store_id']
+  }
+}
+
+Table pim.product_team_meta {
+  product_team_meta_id bigint [pk, increment]
+  product_id bigint
+  club_id bigint
+  competition_id bigint
+  season_id bigint
+  department_id bigint
+  kit_category_id bigint
+  kit_class_id bigint
+  is_primary boolean
+  squad_number int
+  player_name text
+  Indexes {
+    (club_id) [name: 'idx_product_team_meta_club_id']
+    (product_id) [name: 'idx_product_team_meta_product_id']
+    (season_id) [name: 'idx_product_team_meta_season_id']
+  }
+}
+
+Table pim.product_type {
+  product_type_id int [pk]
+  product_type_name text [not null]
+}
+
+Table pim.rivalry_intensity_ref {
+  band_id bigint [pk, increment]
+  label text [not null]
+  min_score smallint [not null]
+  max_score smallint [not null]
+}
+
+Table pim.rivalry_type {
+  rivalry_type_id bigint [pk, increment]
+  code text [not null]
+  name text [not null]
+  description text
+  Indexes {
+    (code) [name: 'rivalry_type_code_key', unique]
+  }
+}
+
+Table pim.scheduled_change {
+  id bigint [pk, increment]
+  name text [not null]
+  description text
+  scheduled_at timestamp [not null]
+  ends_at timestamp
+  status text [not null, default: 'pending']
+  scope_type text [not null]
+  scope_group_id bigint
+  created_by bigint
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  applied_at timestamp
+  reverted_at timestamp
+  error_message text
+  Indexes {
+    (scheduled_at) [name: 'idx_scheduled_change_scheduled_at']
+    (status) [name: 'idx_scheduled_change_status']
+    (scheduled_at) [name: 'scheduled_change_scheduled_at_idx']
+    (status) [name: 'scheduled_change_status_idx']
+  }
+}
+
+Table pim.scheduled_change_item {
+  id bigint [pk, increment]
+  scheduled_change_id bigint [not null]
+  product_id bigint
+  entity_type text [not null]
+  field_name text [not null]
+  new_value text
+  old_value text
+  change_mode text [default: 'absolute']
+  status text [not null, default: 'pending']
+  error_message text
+  Indexes {
+    (scheduled_change_id) [name: 'scheduled_change_item_change_idx']
+    (scheduled_change_id) [name: 'scheduled_change_item_v2_change_idx']
+    (product_id) [name: 'scheduled_change_item_v2_product_idx']
+    (status) [name: 'scheduled_change_item_v2_status_idx']
+  }
+}
+
+Table pim.season {
+  season_id bigint [pk, increment]
+  code text [not null]
+  year_start int [not null]
+  year_end int [not null]
+  Indexes {
+    (code) [name: 'season_code_key', unique]
+  }
+}
+
+Table pim.store {
+  store_id bigint [pk, increment]
+  code text [not null]
+  name text
+  website_code text [not null]
+  Indexes {
+    (code) [name: 'idx_store_code']
+    (code) [name: 'store_code_key', unique]
+  }
+}
+
+Table pim.store_currency {
+  store_id bigint [not null]
+  currency_id bigint [not null]
+  is_default boolean
+  Indexes {
+    (store_id, currency_id) [pk]
+  }
+}
+
+Table pim.tax_class {
+  tax_class_id bigint [pk, increment]
+  tax_class_name text [not null]
+  Indexes {
+    (tax_class_name) [name: 'tax_class_tax_class_name_key', unique]
+  }
+}
+
+Table pim.warehouse {
+  warehouse_id bigint [pk, increment]
+  code text [not null]
+  name text
+  Indexes {
+    (code) [name: 'warehouse_code_key', unique]
+  }
+}
+
+Table pim.workspace_setting {
+  key text [pk]
+  value jsonb [not null]
+  updated_at timestamp [default: `now()`]
+}
+
+// References (foreign keys)
+Ref: pim.alumio_sync_queue.product_id > pim.product.product_id
+Ref: pim.api_key.created_by > pim.app_user.app_user_id
+Ref: pim.app_role_permission.app_permission_id > pim.app_permission.app_permission_id
+Ref: pim.app_role_permission.app_role_id > pim.app_role.app_role_id
+Ref: pim.app_session.app_user_id > pim.app_user.app_user_id
+Ref: pim.app_user_role.assigned_by > pim.app_user.app_user_id
+Ref: pim.app_user_role.app_user_id > pim.app_user.app_user_id
+Ref: pim.app_user_role.app_role_id > pim.app_role.app_role_id
+Ref: pim.audit_event.actor_user_id > pim.app_user.app_user_id
+Ref: pim.auth_identity.app_user_id > pim.app_user.app_user_id
+Ref: pim.category.parent_id > pim.category.category_id
+Ref: pim.club_rivalry.rivalry_type_id > pim.rivalry_type.rivalry_type_id
+Ref: pim.club_rivalry.club_id_b > pim.club.club_id
+Ref: pim.club_rivalry.club_id_a > pim.club.club_id
+Ref: pim.club_rivals_expanded.club_id > pim.club.club_id
+Ref: pim.club_rivals_expanded.rivalry_type_id > pim.rivalry_type.rivalry_type_id
+Ref: pim.club_rivals_expanded.rival_club_id > pim.club.club_id
+Ref: pim.club_rivals_expanded.club_rivalry_id > pim.club_rivalry.club_rivalry_id
+Ref: pim.currency_conversion_rate.from_currency_id > pim.currency.currency_id
+Ref: pim.currency_conversion_rate.to_currency_id > pim.currency.currency_id
+Ref: pim.image_asset.product_id > pim.product.product_id
+Ref: pim.import_error.import_row_id > pim.import_row.import_row_id
+Ref: pim.import_job.created_by > pim.app_user.app_user_id
+Ref: pim.import_row.import_job_id > pim.import_job.import_job_id
+Ref: pim.product.product_type_id > pim.product_type.product_type_id
+Ref: pim.product.brand_id > pim.brands.brand_id
+Ref: pim.product.condition_id > pim.condition.condition_id
+Ref: pim.product.era_id > pim.era.era_id
+Ref: pim.product.gender_id > pim.gender.gender_id
+Ref: pim.product.parent_sku > pim.product.sku
+Ref: pim.product.product_colour_id > pim.product_colour.product_colour_id
+Ref: pim.product.size_id > pim.product_sizes.size_id
+Ref: pim.product.tax_class_id > pim.tax_class.tax_class_id
+Ref: pim.product.updated_by > pim.app_user.app_user_id
+Ref: pim.product_attribute_val.store_id > pim.store.store_id
+Ref: pim.product_attribute_val.product_id > pim.product.product_id
+Ref: pim.product_attribute_val.attribute_id > pim.attribute_def.attribute_id
+Ref: pim.product_barcode.product_id > pim.product.product_id
+Ref: pim.product_category.category_id > pim.category.category_id
+Ref: pim.product_category.product_id > pim.product.product_id
+Ref: pim.product_channel_id.product_id > pim.product.product_id
+Ref: pim.product_channel_id.channel_id > pim.channel.channel_id
+Ref: pim.product_group.created_by > pim.app_user.app_user_id
+Ref: pim.product_group.updated_by > pim.app_user.app_user_id
+Ref: pim.product_group_member.added_by > pim.app_user.app_user_id
+Ref: pim.product_group_member.product_id > pim.product.product_id
+Ref: pim.product_group_member.product_group_id > pim.product_group.product_group_id
+Ref: pim.product_price.currency_id > pim.currency.currency_id
+Ref: pim.product_price.product_id > pim.product.product_id
+Ref: pim.product_price.store_id > pim.store.store_id
+Ref: pim.product_stock.product_id > pim.product.product_id
+Ref: pim.product_stock.warehouse_id > pim.warehouse.warehouse_id
+Ref: pim.product_store.store_id > pim.store.store_id
+Ref: pim.product_store.product_id > pim.product.product_id
+Ref: pim.product_team_meta.competition_id > pim.competition.competition_id
+Ref: pim.product_team_meta.department_id > pim.department.department_id
+Ref: pim.product_team_meta.kit_category_id > pim.kit_category.kit_category_id
+Ref: pim.product_team_meta.kit_class_id > pim.kit_class.kit_class_id
+Ref: pim.product_team_meta.product_id > pim.product.product_id
+Ref: pim.product_team_meta.season_id > pim.season.season_id
+Ref: pim.product_team_meta.club_id > pim.club.club_id
+Ref: pim.scheduled_change.scope_group_id > pim.product_group.product_group_id
+Ref: pim.scheduled_change.created_by > pim.app_user.app_user_id
+Ref: pim.scheduled_change_item.product_id > pim.product.product_id
+Ref: pim.scheduled_change_item.scheduled_change_id > pim.scheduled_change.id
+Ref: pim.store_currency.store_id > pim.store.store_id
+Ref: pim.store_currency.currency_id > pim.currency.currency_id
